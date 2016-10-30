@@ -8,7 +8,7 @@ Paloma uses Markdown formatting and [jQuery](http://jquery.com) and [Underscore]
 
 Paloma displays a running log of all passages, like Jonah.  All story links from previous passages are disabled, and the selected link is left highlighted.
 
-By default, clicking a passage link adds an entry to the reader's browser history.  The reader can back up through this history, but cannot go forward again (except by clicking story links again).
+By default, clicking a passage link adds an entry to the reader's browser history.  The reader can back up through this history, but cannot go forward again (except by clicking story links again).  Paloma does not have Snowman's checkpoint functionality; history is node-by-node only.
 
 ## Building From Source
 

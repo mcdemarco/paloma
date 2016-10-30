@@ -78,17 +78,6 @@ var Story = function(el) {
 	this.state = {};
 
 	/**
-	 The name of the last checkpoint set. If none has been set, this is an
-	 empty string.
-
-	 @property checkpointName
-	 @type String
-	 @readonly
-	**/
-
-	this.checkpointName = '';
-
-	/**
 	 If set to true, then any JavaScript errors are ignored -- normally, play
 	 would end with a message shown to the user. 
 
@@ -108,17 +97,6 @@ var Story = function(el) {
 	**/
 
 	this.errorMessage = '\u26a0 %s';
-
-	/**
-	 Mainly for internal use, this records whether the current passage contains
-	 a checkpoint.
-
-	 @property atCheckpoint
-	 @type Boolean
-	 @private
-	**/
-
-	this.atCheckpoint = false;
 
 	// create passage objects
 
@@ -191,18 +169,19 @@ _.extend(Story.prototype, {
 			if (state) {
 				this.state = state.state;
 				this.history = state.history;
-				this.checkpointName = state.checkpointName;
 				
 				/**
-				 Remove the appropriate passages from the visual history before reopening a passage,
-				 Blank out the current passage so it doesn't get added to the visual history during this.show().
-				 On forward, eat the change.
+				 Remove the previous passage from the visual history before reopening it.
+				 Remove the current passage after/because it gets added to the visual history 
+				   (but not the state history) during this.show().
+				 If the user did a browser forward (determined by the history length being off)
+				   back out using a helper class; this effectively disables the forward button.
 				 **/
 
 				if (this.history.length == $('div.phistory').length && !$('#phistory').hasClass('fakeBack')) {
 					$('div.phistory:last').remove();
-					$('div#passage').html('');
 					this.show(this.history[this.history.length - 1], true);
+					$('div.phistory:last').remove();
 				} else {
 					if ($('#phistory').hasClass('fakeBack')) {
 						$('#phistory').removeClass('fakeBack');
@@ -215,7 +194,6 @@ _.extend(Story.prototype, {
 			else if (this.history.length > 1) {
 				this.state = {};
 				this.history = [];
-				this.checkpointName = '';
 				this.show(this.startPassage, true);
 				$('div#phistory').html('');
 			}
@@ -285,10 +263,8 @@ _.extend(Story.prototype, {
 
 		if (window.location.hash === '' ||
 			!this.restore(window.location.hash.replace('#', ''))) {
-			// start the story; mark that we're at a checkpoint
 
 			this.show(this.startPassage);
-			this.atCheckpoint = true;
 		}
 	},
 
@@ -353,34 +329,20 @@ _.extend(Story.prototype, {
 			this.history.push(passage.id);
 
 			try {
-				if (this.atCheckpoint) {
-					window.history.pushState(
-						{
-							state: this.state,
-							history: this.history,
-							checkpointName: this.checkpointName
-						},
-						'',
-						''
-					);
-				}
-				else {
-					window.history.replaceState(
-						{
-							state: this.state,
-							history: this.history,
-							checkpointName: this.checkpointName
-						},
-						'',
-						''
-					);
-				}
+				window.history.pushState(
+					{
+						state: this.state,
+						history: this.history
+					},
+					'',
+					''
+				);
 			}
 			catch (e) {
 				// this may fail due to security restrictions in the browser
 
 				/**
-				 Triggered whenever a checkpoint fails to be saved to browser history.
+				 Triggered whenever a passage fails to be saved to browser history.
 
 				 @event checkpointfailed
 				**/
@@ -397,7 +359,6 @@ _.extend(Story.prototype, {
 		this.pcopy();
 		
 		window.passage = passage;
-		this.checkpoint(passage.name);
 
 		$('#passage').html(passage.render()).fadeIn('slow');
 		$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
@@ -415,10 +376,12 @@ _.extend(Story.prototype, {
 
 	/**
 	 Copies the current passage text into the passage history div.
+	 The id is only for debugging and to skip copying the pre-start "passage".
 	**/
 	
 	pcopy: function() {
-		$('#phistory').append('<div class="phistory">' + $('#passage').html() + '</div>');
+		if (parseInt(window.passage.id,10))
+			$('#phistory').append('<div class="phistory" data-ppassage="' + window.passage.id + '">' + $('#passage').html() + '</div>');
 	},
 	
 	/**
@@ -442,35 +405,6 @@ _.extend(Story.prototype, {
 	},
 
 	/**
-	 Tries to add an entry in the browser history for the current story state.
-	 Remember, only variables set on this story's state variable are stored in
-	 the browser history.
-
-	 @method checkpoint
-	 @param name {String} checkpoint name, appears in history, optional
-	**/
-
-	checkpoint: function(name) {
-		if (name !== undefined) {
-			document.title = this.name + ': ' + name;
-			this.checkpointName = name;
-		}
-		else {
-			this.checkpointName = '';
-		}
-
-		this.atCheckpoint = true;
-
-		/**
-		 Triggered whenever a checkpoint is set in the story.
-
-		 @event checkpoint
-		**/
-
-		$.event.trigger('checkpoint', { name: name });
-	},
-
-	/**
 	 Returns a hash value representing the current state of the story.
 
 	 @method saveHash
@@ -479,7 +413,7 @@ _.extend(Story.prototype, {
 
 	saveHash: function()
 	{	
-		return LZString.compressToBase64(JSON.stringify({ state: this.state, history: this.history, checkpointName: this.checkpointName }));
+		return LZString.compressToBase64(JSON.stringify({ state: this.state, history: this.history }));
 	},
 
 	/**
@@ -524,7 +458,6 @@ _.extend(Story.prototype, {
 			var save = JSON.parse(LZString.decompressFromBase64(hash));
 			this.state = save.state;
 			this.history = save.history;
-			this.checkpointName = save.checkpointName;
 			this.show(this.history[this.history.length - 1], true);
 		}
 		catch (e)
