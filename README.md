@@ -19,6 +19,7 @@ By default, clicking a passage link adds an entry to the reader's browser histor
 As in Snowman, state is not restored on navigating back.
 
 Some basic Snowman scripting:
+
 * Set a variable `gender`:  `<% s.gender = "male" %>`.
 * Show the variable's value:  `<%= s.gender %>`.
 * Add a comment: `/* My ToDo list for this node: spellcheck! */`
