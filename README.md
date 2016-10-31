@@ -4,6 +4,10 @@ Paloma is a Jonah-style Twine 2 story format based on [Snowman](https://bitbucke
 
 Paloma uses Markdown formatting and [jQuery](http://jquery.com) and [Underscore](http://underscorejs.org/) scripting.
 
+View a demo story [here](http://mcdemarco.net/tools/scree/test-paloma.html).
+
+To add Paloma to Twine 2, use this URL (under Formats > Add a New Format): [https://mcdemarco.net/tools/scree/paloma/format.js](https://mcdemarco.net/tools/scree/paloma/format.js).
+
 ## Changes From Snowman
 
 Paloma displays a running log of all passages, like Jonah.  All story links from previous passages are disabled, and the selected link is left highlighted.
