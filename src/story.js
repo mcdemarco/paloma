@@ -376,7 +376,8 @@ _.extend(Story.prototype, {
 
 	/**
 	 Copies the current passage text into the passage history div.
-	 The id is only for debugging and to skip copying the pre-start "passage".
+
+	 @method pcopy
 	**/
 	
 	pcopy: function() {
