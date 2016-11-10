@@ -1,8 +1,8 @@
 # Paloma
 
-Paloma is a Jonah-style Twine 2 story format based on [Snowman](https://bitbucket.org/klembot/snowman-2/).
+Paloma is a Jonah-style Twine 2 story format based on [Snowman](https://bitbucket.org/klembot/snowman-2/).  It uses Markdown rather than TiddlyWiki-style text formatting, so it is not a drop-in replacement for Jonah.
 
-Paloma uses [Marked](https://github.com/chjj/marked/) for Markdown formatting and [jQuery](http://jquery.com) and [Underscore](http://underscorejs.org/) for scripting.
+The Paloma page is [here](http://mcdemarco.net/tools/scree/paloma/).
 
 View a demo story [here](http://mcdemarco.net/tools/scree/test-paloma.html).
 
@@ -16,6 +16,8 @@ By default, clicking a passage link adds an entry to the reader's browser histor
 
 ### Non-changes from Snowman
 
+Paloma uses [Marked](https://github.com/chjj/marked/) for Markdown formatting and [jQuery](http://jquery.com) and [Underscore](http://underscorejs.org/) for scripting and templating.
+
 As in Snowman, state is not restored on navigating back.
 
 Some basic Snowman scripting:
@@ -25,6 +27,16 @@ Some basic Snowman scripting:
 * Add a comment: `/* My ToDo list for this node: spellcheck! */`
 
 See [the Snowman docs](https://bitbucket.org/klembot/snowman-2/) for more details.
+
+## Versions
+
+### 1.0.1
+
+Added the title inline in the story.  To restyle or remove it, use the selector `#ptitle`.
+
+### 1.0.0
+
+Initial version.
 
 ## Building From Source
 
