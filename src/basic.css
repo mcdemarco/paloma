@@ -5,10 +5,15 @@ body {
 	color: #222;
 }
 
-#passage, #phistory {
+#passage, #phistory, #ptitle {
 	max-width: 38em;
 	margin: 0 auto;
 	line-height: 145%;
+}
+
+#ptitle {
+    text-align:center;
+    font-family:Garamond, Georgia, serif;
 }
 
 div.phistory {
