@@ -6,6 +6,6 @@ var Story = window.Story = require('./story');
 var Passage = window.Passage = require('./passage');
 
 $(function() {
-	window.story = new Story($('tw-storydata'));
+	window.story = new Story();
 	window.story.start();
 });

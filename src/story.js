@@ -11,7 +11,27 @@ var $ = require('jquery');
 var _ = require('underscore');
 var LZString = require('lz-string');
 
-var Story = function(el) {
+var Story = function() {
+	//Find the story and infer the Twine version.
+
+	var el, twVersion, selectorAuthor, selectorCSS, selectorScript, selectorSubtitle;
+
+	if ($('tw-storydata').length > 0) {
+		el = $('tw-storydata');
+		twVersion = 2;
+		selectorAuthor = 'tw-passagedata[name=StoryAuthor]';
+		selectorCSS = '*[type="text/twine-css"]';
+		selectorScript = '*[type="text/twine-javascript"]';
+		selectorSubtitle = 'tw-passagedata[name=StorySubtitle]';
+	} else {
+		el = $('#storeArea');
+		twVersion = 1;
+		selectorAuthor = 'div[tiddler=StoryAuthor]';
+		selectorCSS = '*[tags*="stylesheet"]';
+		selectorScript = '*[tags*="script"]';
+		selectorSubtitle = 'div[tiddler=StorySubtitle]';
+	}
+
 	// set up basic properties
 
 	this.el = el;
@@ -23,7 +43,25 @@ var Story = function(el) {
 	 @readonly
 	**/
 
-	this.name = el.attr('name');
+	this.name = twVersion == 2 ? el.attr('name') : el.find("div[tiddler=StoryTitle]").text();
+
+	/**
+	 The subtitle of the story.
+	 @property subtitle
+	 @type String
+	 @readonly
+	**/
+
+	this.subtitle = el.find(selectorSubtitle).html();
+
+	/**
+	 The name of the author.
+	 @property author
+	 @type String
+	 @readonly
+	**/
+
+	this.author = el.find(selectorAuthor).text();
 
 	/**
 	 The ID of the first passage to be displayed.
@@ -32,7 +70,7 @@ var Story = function(el) {
 	 @readonly
 	**/
 
-	this.startPassage = parseInt(el.attr('startnode'));
+	this.startPassage = twVersion == 2 ? parseInt(el.attr('startnode')) : $('[tiddler=Start]').index();
 
 	/**
 	 The program that created this story.
@@ -111,18 +149,38 @@ var Story = function(el) {
 
 	var p = this.passages;
 
-	el.children('tw-passagedata').each(function(el) {
-		var $t = $(this);
-		var id = parseInt($t.attr('pid'));
-		var tags = $t.attr('tags');
+	if (twVersion == 2) {
+		el.children('tw-passagedata').each(function(el) {
+			var $t = $(this);
+			var id = parseInt($t.attr('pid'));
+			var tags = $t.attr('tags');
+			
+			p[id] = new Passage(
+				id,
+				$t.attr('name'),
+				(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
+				$t.html()
+			);
+		});
+	} else {
+		el.children('*[tiddler]').each(function (index,el) {
+			var $t = $(el);
+			var id = index;
+			var tags = $.trim($t.attr('tags'));
 
-		p[id] = new Passage(
-			id,
-			$t.attr('name'),
-			(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
-			$t.html()
-		);
-	});
+			p[id] = new Passage(
+				id,
+				$t.attr('tiddler'),
+				(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
+				$t.html().replace(/\\n/g, '\n')
+			);
+
+		});
+
+		$('title').html(this.name);
+		$('#ptitle').html(this.name);
+
+	}
 
 	/**
 	 An array of user-specific scripts to run when the story is begun.
@@ -132,7 +190,7 @@ var Story = function(el) {
 	**/
 
 	this.userScripts = _.map(
-		el.children('*[type="text/twine-javascript"]'),
+		el.children(selectorScript),
 		function(el) {
 			return $(el).html();
 		}
@@ -146,7 +204,7 @@ var Story = function(el) {
 	**/
 
 	this.userStyles = _.map(
-		el.children('*[type="text/twine-css"]'),
+		el.children(selectorCSS),
 		function(el) {
 			return $(el).html();
 		}
@@ -161,6 +219,11 @@ _.extend(Story.prototype, {
 	**/
 
 	start: function() {
+		// Initialize special passages.
+		$('#psubtitle').html(this.subtitle);
+		if (this.author)
+			$('#pauthor').html(' by ' + this.author);
+
 		// set up history event handler
 
 		$(window).on('popstate', function(event) {

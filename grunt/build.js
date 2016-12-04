@@ -74,8 +74,21 @@ module.exports = function(grunt) {
 		grunt.file.write('build/format.html', template(data));
 	});
 
+	grunt.registerTask('html:backport', function() {
+		var template = _.template(grunt.file.read('src/index.html'));
+
+		var data = {
+			name: 'Story',
+			passages: '<div id="storeArea" data-size="STORY_SIZE" hidden>"STORY"</div>',
+			script: '<script>' + grunt.file.read('build/paloma.js') + '</script>',
+			stylesheet: '<style>' + grunt.file.read('build/paloma.css') + '</style>'
+		};
+
+		grunt.file.write('build/header.html', template(data));
+	});
+
 	grunt.registerTask('build', ['browserify:default', 'cssmin', 'html:test']);
-	grunt.registerTask('build:release', ['browserify:release', 'cssmin', 'html:release']);
+	grunt.registerTask('build:release', ['browserify:release', 'cssmin', 'html:release', 'html:backport']);
 	grunt.registerTask('default', ['build']);
 	grunt.registerTask('dev', ['build', 'watch']);
 };
