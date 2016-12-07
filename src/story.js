@@ -425,7 +425,8 @@ _.extend(Story.prototype, {
 
 		$('#passage').html(passage.render()).fadeIn('slow');
 		$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
-		
+		this.pcolophon();
+
 		/**
 		 Triggered after a passage has been shown onscreen, and is now
 		 displayed in the div with id passage. The passage being displayed is
@@ -437,6 +438,18 @@ _.extend(Story.prototype, {
 		$.event.trigger('showpassage:after', { passage: passage });
 	},
 
+	/**
+	 Copies the colophon into an end passage.
+
+	 @method pcolophon
+	**/
+	
+	pcolophon: function() {
+		if ($.inArray('End', window.passage.tags) > -1 && this.passage('StoryColophon') != null) {
+			$(this.passage('StoryColophon').render()).hide().appendTo("#passage").fadeIn('slow');
+		}
+	},
+	
 	/**
 	 Copies the current passage text into the passage history div.
 
