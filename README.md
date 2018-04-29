@@ -20,7 +20,7 @@ By default, clicking a passage link adds an entry to the reader's browser histor
 
 There is an inline title at the beginning of the story, as well as an optional subtitle and byline below the title.  To add a subtitle, use the special passage `StorySubtitle`.  To add an author, use `StoryAuthor`.  (The title is handled as usual for your version of Twine.)
 
-To restyle or remove the title, use the selector `#ptitle`.    To restyle or remove the subtitle, use the selectors `#psub` (for both), `#psubtitle` (for the subtitle), and `#pauthor` (for the byline).
+To restyle or remove the title, use the selector `#ptitle`.    To restyle or remove the subtitle, use the selectors `#psub` (for both), `#psubtitle` (for the subtitle), and `#pauthor` (for the byline).  See [my website](http://mcdemarco.net/tools/scree/paloma/) for styling examples.
 
 ### Non-changes from Snowman
 
@@ -39,6 +39,10 @@ Some basic Snowman scripting:
 See [the Snowman docs](https://bitbucket.org/klembot/snowman-2/) for more details.
 
 ## Versions
+
+### 1.1.1
+
+Fixed iPhone CSS issue.
 
 ### 1.1.0
 
