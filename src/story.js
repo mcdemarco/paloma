@@ -192,7 +192,10 @@ var Story = function() {
 	this.userScripts = _.map(
 		el.children(selectorScript),
 		function(el) {
-			return $(el).html();
+			if (twVersion == 1)
+				return $(el).html().replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+			else
+				return $(el).html();
 		}
 	);
 
@@ -206,7 +209,10 @@ var Story = function() {
 	this.userStyles = _.map(
 		el.children(selectorCSS),
 		function(el) {
-			return $(el).html();
+			if (twVersion == 1)
+				return $(el).html().replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+			else
+				return $(el).html();
 		}
 	);
 };
