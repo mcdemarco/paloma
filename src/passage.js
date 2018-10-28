@@ -105,7 +105,7 @@ function render(source) {
 		}
 	});
 
-	return marked(result, {smartypants: true});
+	return marked(result);
 };
 
 /**
