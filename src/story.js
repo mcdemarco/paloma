@@ -172,7 +172,7 @@ var Story = function() {
 				id,
 				$t.attr('tiddler'),
 				(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
-				$t.html().replace(/\\n/g, '\n')
+				$t.html().replace(/\\n/g, '\n').replace(/\\t/g, '\t')
 			);
 
 		});
