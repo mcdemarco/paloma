@@ -24,13 +24,15 @@ function render(source) {
 	// See below for the definition of readyFunc.
 
 	var pfl = [];
+	var pfa = [];
 	if (window.proofing) {
 		try {
 			pfl = localStorage.getItem("palomaLeafArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaLeafArray"))) : [];
+			pfa = localStorage.getItem("palomaProofArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaProofArray"))) : [];
 		} catch (e) {
-			console.log("Leaf read error: " + e.description ? e.description : e.name);
+			console.log("Proofing data read error: " + e.description ? e.description : e.name);
 		}
-	} 
+	}
 
 	var result = _.template(source)({ s: window.story.state, $: readyFunc });
 
@@ -109,10 +111,9 @@ function render(source) {
 			return '<a href="' + target + '">' + display + '</a>';
 		}
 		else {
-			return '<a href="javascript:void(0)" class="' + 
-				(window.proofing && _.contains(pfl,target) ? "prLeaf" : "") +
-				'" data-passage="' +
-				_.escape(target) + '">' + display + '</a>';
+			return '<a href="javascript:void(0)" ' +
+				(window.proofing && _.contains(pfl,target) &&  _.contains(pfa,target) ? ' class="prLeaf" ' : ' data-passage="' + _.escape(target) + '"') +
+				'>' + display + '</a>';
 		}
 	});
 

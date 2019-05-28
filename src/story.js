@@ -134,30 +134,6 @@ var Story = function() {
 
 	this.proof = window.proofing;
 
-	if (this.proof) {
-		$("#proof").show();
-		$("body").addClass("proofing");
-		$("#prfChk").on("change", function() {
-			var proofed = $(this).val();
-			window.passage.proofed = proofed;
-			var name = window.passage.name;
-			try {
-				var pfa = localStorage.getItem("palomaProofingArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaProofingArray"))) : [];
-
-				if (proofed)
-					pfa.push(name);
-				else
-					pfa = _.pluck(pfa,name);
-				
-				localStorage.setItem("palomaProofingArray",JSON.stringify(pfa));
-				var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
-				$("#prfPcnt").html(Math.round(100 * pfa.length/passageCount) + "%");
-			} catch (e) {
-				console.log("Proof update error: " + e.description ? e.description : e.name);
-			}
-		});
-	}
-
 	/**
 	 The message shown to users when there is an error and ignoreErrors is not
 	 true. Any %s in the message will be interpolated as the actual error
@@ -179,14 +155,7 @@ var Story = function() {
 	**/
 
 	this.passages = [];
-
-	try {
-		if (localStorage && localStorage.getItem("palomaProofingArray")) 
-			this.proofs = _.uniq(JSON.parse(localStorage.getItem("palomaProofingArray")));
-	} catch (e) {
-		this.proofs = [];
-		console.log("Proofing data check failed.");
-	}
+	this.proofs = this.retrieve("palomaProofArray");
 
 	var p = this.passages;
 	var pr = this.proofs;
@@ -280,6 +249,8 @@ _.extend(Story.prototype, {
 			$('#pauthor').html(' by ' + this.author);
 
 		if (this.proof) {
+			$("#proof").show();
+			$("body").addClass("proofing");
 			$("#prfPcnt").html(Math.round(100 * this.proofs.length/this.passages.length) + "%");
 			$("#prfPcnt").data("passagecount", this.passages.length);
 		}
@@ -330,6 +301,22 @@ _.extend(Story.prototype, {
 					$(e.target).closest('[data-passage]').addClass('visited').attr('data-passage')
 				));
 			}
+		}.bind(this));
+
+		// set up proofing checkbox handler.
+
+		$('body').on('change', '#prfChk', function (e) {
+			//Set the value.
+			var proofed = $(e.target).val();
+			window.passage.proofed = proofed;
+			var name = window.passage.name;
+
+			//Update local storage.
+			this.pushpop("palomaProofArray", name, proofed);
+
+			//Update the UI.
+			var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
+			$("#prfPcnt").html(Math.round(100 * pfa.length/passageCount) + "%");
 		}.bind(this));
 
 		// set up hash change handler for save/restore
@@ -492,6 +479,18 @@ _.extend(Story.prototype, {
 
 		$('#passage').html(passage.render()).fadeIn('slow');
 		$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
+
+		//If proofing, automatically check for leafiness (based on remaining link rendering).
+		if (this.proof) {
+			if ($('#passage a[data-passage]').length === 0) {
+				$('#leafChk').show();
+				//push the leaf if it's new.
+				this.pushpop("palomaLeafArray",passage.name,true);
+			} else {
+				$('#leafChk').hide();
+			}
+		}
+
 		this.pcolophon();
 
 		/**
@@ -549,14 +548,74 @@ _.extend(Story.prototype, {
 	},
 
 	/**
+	 Stores an array to a local storage key as JSON,
+	 with all the related nonsense.  
+
+	 @method store
+	 @param keya {String} the local storage item key
+	 @param arya {array} the array to be stored
+	 @return {bool} success or failure, if the caller cares to know
+	**/
+
+	store: function(keya,arya) {
+		try {
+			localStorage.setItem(keya, JSON.stringify(arya));
+			return true;
+		} catch (e) {
+			console.log("Local storage write error: " + e.description ? e.description : e.name);
+			return false;
+		}
+	},
+
+	/**
+	 Returns uniquified JSON array from a local storage key, 
+	 with all the related nonsense.  
+	 Uniquing shouldn't be necessary and should be removed at some point.
+
+	 @method retrieve
+	 @param keya {String} the local storage item key
+	 @return {object or array} the parsed JSON object
+	**/
+
+	retrieve: function(keya) {
+		var arya = [];
+		try {
+			arya = localStorage && localStorage.getItem(keya) ? JSON.parse(localStorage.getItem(keya)) : [];
+		} catch (e) {
+			console.log("Local storage read error: " + e.description ? e.description : e.name);
+		}
+		return _.uniq(arya);
+	},
+
+	/**
+	 Pushes or pops an array element to/from the specified local storage key.
+
+	 @method pusher
+	 @param keya {String} the local storage item key
+	 @param passa {String} the passage name to be pushed or removed
+	 @param pusha {Bool} whether to push (true) or remove (false) the passage
+	 @return {Bool} success or failure, if the caller cares to know
+	**/
+
+	pushpop: function(keya,passa,pusha) {
+		var ppa = this.retrieve(keya);
+		if (pusha)
+			ppa.push(passa);
+		else
+			ppa = _.pluck(ppa,passa);
+
+		//Save the changes and return final result.
+		return this.store(keya, ppa);
+	},
+
+	/**
 	 Returns a hash value representing the current state of the story.
 
 	 @method saveHash
 	 @return String hash
 	**/
 
-	saveHash: function()
-	{	
+	saveHash: function() {	
 		return LZString.compressToBase64(JSON.stringify({ state: this.state, history: this.history }));
 	},
 
@@ -567,8 +626,7 @@ _.extend(Story.prototype, {
 	 @return String hash
 	**/
 
-	save: function()
-	{
+	save: function() {
 		/**
 		 Triggered whenever story progress is saved.
 
@@ -587,8 +645,7 @@ _.extend(Story.prototype, {
 	 @return {Boolean} whether the restore succeeded
 	**/
 
-	restore: function (hash)
-	{
+	restore: function (hash) {
 		/**
 		 Triggered before trying to restore from a hash.
 
