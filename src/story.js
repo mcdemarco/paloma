@@ -141,7 +141,7 @@ var Story = function() {
 			window.passage.proofed = proofed;
 			var name = window.passage.name;
 			try {
-				var pfa = localStorage.getItem("palomaProofingArray") ? JSON.parse(localStorage.getItem("palomaProofingArray")) : [];
+				var pfa = localStorage.getItem("palomaProofingArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaProofingArray"))) : [];
 
 				if (proofed) 
 					pfa.push(name);
@@ -149,6 +149,8 @@ var Story = function() {
 					pfa = _.pluck(pfa,name);
 				
 				localStorage.setItem("palomaProofingArray",JSON.stringify(pfa));
+				var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
+				$("#prfPcnt").html(Math.round(100 * pfa.length/passageCount) + "%");
 			} catch (e) {
 				console.log("Proof update error: " + e.description ? e.description : e.name);
 			}
@@ -179,7 +181,7 @@ var Story = function() {
 
 	try {
 		if (localStorage && localStorage.getItem("palomaProofingArray")) 
-			this.proofs = JSON.parse(localStorage.getItem("palomaProofingArray"));
+			this.proofs = _.uniq(JSON.parse(localStorage.getItem("palomaProofingArray")));
 	} catch (e) {
 		this.proofs = [];
 		console.log("Proofing data check failed.");
@@ -187,6 +189,7 @@ var Story = function() {
 
 	var p = this.passages;
 	var pr = this.proofs;
+	var proofing = this.proof;
 	
 	if (twVersion == 2) {
 		el.children('tw-passagedata').each(function(el) {
@@ -194,7 +197,7 @@ var Story = function() {
 			var id = parseInt($t.attr('pid'));
 			var pname = $t.attr('name');
 			var tags = $t.attr('tags');
-			var proofed = _.contains(pr,pname);
+			var proofed = proofing ? _.contains(pr,pname) : false;
 			
 			p[id] = new Passage(
 				id,
@@ -210,7 +213,7 @@ var Story = function() {
 			var id = index;
 			var pname = $t.attr('tiddler');
 			var tags = $.trim($t.attr('tags'));
-			var proofed = _.contains(pr,pname);
+			var proofed = proofing ? _.contains(pr,pname) : false;
 
 			p[id] = new Passage(
 				id,
@@ -274,6 +277,11 @@ _.extend(Story.prototype, {
 		$('#psubtitle').html(this.subtitle);
 		if (this.author)
 			$('#pauthor').html(' by ' + this.author);
+
+		if (this.proof) {
+			$("#prfPcnt").html(Math.round(100 * this.proofs.length/this.passages.length) + "%");
+			$("#prfPcnt").data("passagecount", this.passages.length);
+		}
 
 		// set up history event handler
 
