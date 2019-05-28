@@ -71,8 +71,14 @@ tw-storydata {
 #proof {
     background-color: pink;
     position: bottom center;
+    width:100%;
 }
 
-#proof span {
+#prfName {
     font-style: italic;
+}
+
+#prfPcnt {
+    display:inline-block;
+    float:right;
 }
