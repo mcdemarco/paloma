@@ -126,6 +126,36 @@ var Story = function() {
 	this.ignoreErrors = false;
 
 	/**
+	 If set to true, then show the proofing UI.
+
+	 @property proof
+	 @type Boolean
+	**/
+
+	this.proof = true;
+
+	if (this.proof) {
+		$("#proof").show();
+		$("#prfChk").on("change", function() {
+			var proofed = $(this).val();
+			window.passage.proofed = proofed;
+			var name = window.passage.name;
+			try {
+				var pfa = localStorage.getItem("palomaProofingArray") ? JSON.parse(localStorage.getItem("palomaProofingArray")) : [];
+
+				if (proofed) 
+					pfa.push(name);
+				else
+					pfa = _.pluck(pfa,name);
+				
+				localStorage.setItem("palomaProofingArray",JSON.stringify(pfa));
+			} catch (e) {
+				console.log("Proof update error: " + e.description ? e.description : e.name);
+			}
+		});
+	}
+
+	/**
 	 The message shown to users when there is an error and ignoreErrors is not
 	 true. Any %s in the message will be interpolated as the actual error
 	 messsage.
@@ -147,32 +177,47 @@ var Story = function() {
 
 	this.passages = [];
 
-	var p = this.passages;
+	try {
+		if (localStorage && localStorage.getItem("palomaProofingArray")) 
+			this.proofs = JSON.parse(localStorage.getItem("palomaProofingArray"));
+	} catch (e) {
+		this.proofs = [];
+		console.log("Proofing data check failed.");
+	}
 
+	var p = this.passages;
+	var pr = this.proofs;
+	
 	if (twVersion == 2) {
 		el.children('tw-passagedata').each(function(el) {
 			var $t = $(this);
 			var id = parseInt($t.attr('pid'));
+			var pname = $t.attr('name');
 			var tags = $t.attr('tags');
+			var proofed = _.contains(pr,pname);
 			
 			p[id] = new Passage(
 				id,
-				$t.attr('name'),
+				pname,
 				(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
-				$t.html()
+				$t.html(),
+				proofed
 			);
 		});
 	} else {
 		el.children('*[tiddler]').each(function (index,el) {
 			var $t = $(el);
 			var id = index;
+			var pname = $t.attr('tiddler');
 			var tags = $.trim($t.attr('tags'));
+			var proofed = _.contains(pr,pname);
 
 			p[id] = new Passage(
 				id,
-				$t.attr('tiddler'),
+				pname, 
 				(tags !== '' && tags !== undefined) ? tags.split(' ') : [],
-				$t.html().replace(/\\n/g, '\n').replace(/\\t/g, '\t')
+				$t.html().replace(/\\n/g, '\n').replace(/\\t/g, '\t'),
+				proofed
 			);
 
 		});
@@ -347,6 +392,7 @@ _.extend(Story.prototype, {
 	**/
 
 	passage: function(idOrName) {
+		//What if the name is a number?
 		if (_.isNumber(idOrName)) {
 			return this.passages[idOrName];
 		}
@@ -356,7 +402,7 @@ _.extend(Story.prototype, {
 	},
 
 	/**
-	 Displays a passage on the page, replacing the current one. If
+	 Displays a passage on the page, becoming the current one. If
 	 there is no passage by the name or ID passed, an exception is raised.
 
 	 Calling this immediately inside a passage (i.e. in its source code) will
@@ -393,6 +439,12 @@ _.extend(Story.prototype, {
 		**/
 
 		$.event.trigger('showpassage', { passage: passage });
+
+		/* set proofing UI */
+		if (this.proof) {
+			$("#prfChk").prop("checked",passage.proofed);
+			$("#prfName").html(passage.name);
+		}
 
 		if (!noHistory) {
 			this.history.push(passage.id);

@@ -194,7 +194,7 @@ function readyFunc() {
 	}
 }
 
-var Passage = function(id, name, tags, source) {
+var Passage = function(id, name, tags, source, proofed) {
 	/**
 	 The numeric ID of the passage.
 	 @property name
@@ -227,6 +227,14 @@ var Passage = function(id, name, tags, source) {
 	**/
 
 	this.source = _.unescape(source);
+
+	/**
+	 The passage proofing state.
+	 @property proofed
+	 @type String
+	**/
+
+	this.proofed = proofed;
 };
 
 /**

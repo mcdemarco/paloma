@@ -65,3 +65,14 @@ a:active {
 tw-storydata {
 	display: none;
 }
+
+/* proofing styles */
+
+#proof {
+    background-color: pink;
+    position: bottom center;
+}
+
+#proof span {
+    font-style: italic;
+}
