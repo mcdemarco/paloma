@@ -19,9 +19,9 @@
 <%= passages %>
 
 <div id="proof" style="display:none;">
-	<b>Proofing <span id="prfName">node</span>: </b>
-	<label for="prfChk"> passage: </label><input id="prfChk" type="checkbox"/>
-	<label for="leafChk"> children: </label><input id="leafChk" type="checkbox" disabled/>
+	Proofing 
+	<label for="prfChk" id="prfName"></label>: <input id="prfChk" type="checkbox"/>
+	<span id="leafChk" style="display:none;"> (all children checked) </span>
 	<span id="prfPcnt">0%</span>
 </div>
 <%= script %>
