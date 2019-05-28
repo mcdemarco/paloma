@@ -250,10 +250,12 @@ _.extend(Story.prototype, {
 
 		if (this.proof) {
 			//Create the proofing structure.
-			$("body").append('<div id="proof">Proofing <label for="prfChk" id="prfName"></label>: <input id="prfChk" type="checkbox"/><span id="leafChk" style="display:none;"> (all children checked) </span><span id="prfPcnt">0%</span></div>');
-
-			$("#proof").show();
-			$("body").addClass("proofing");
+			if (this.proof == 'read')
+				$("body").append('<div id="prfPcnt">0%</div>');
+			else
+				$("body").append('<div id="proof">Proofing <label for="prfChk" id="prfName"></label>: <input id="prfChk" type="checkbox"/><span id="leafChk" style="display:none;"> (all children checked) </span><span id="prfPcnt">0%</span></div>');
+			//This class is used to cross out leafed options.
+			$("body").addClass(this.proof);
 			$("#prfPcnt").html(Math.round(100 * this.proofs.length/this.passages.length) + "%");
 			$("#prfPcnt").data("passagecount", this.passages.length);
 		}
@@ -306,21 +308,22 @@ _.extend(Story.prototype, {
 			}
 		}.bind(this));
 
-		// set up proofing checkbox handler.
-
-		$('body').on('change', '#prfChk', function (e) {
-			//Set the value.
-			var proofed = $(e.target).val();
-			window.passage.proofed = proofed;
-			var name = window.passage.name;
-
-			//Update local storage.
-			var pfaLength = this.pushpop("palomaProofArray", name, proofed);
-
-			//Update the UI.
-			var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
-			$("#prfPcnt").html(Math.round(100 * pfaLength/passageCount) + "%");
-		}.bind(this));
+		if (this.proof == 'proof') {
+			// set up proofing checkbox handler.
+			$('body').on('change', '#prfChk', function (e) {
+				//Set the value.
+				var proofed = $(e.target).val();
+				window.passage.proofed = proofed;
+				var name = window.passage.name;
+				
+				//Update local storage.
+				var pfaLength = this.pushpop("palomaProofArray", name, proofed);
+				
+				//Update the UI.
+				var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
+				$("#prfPcnt").html(Math.round(100 * pfaLength/passageCount) + "%");
+			}.bind(this));
+		}
 
 		// set up hash change handler for save/restore
 
@@ -440,9 +443,18 @@ _.extend(Story.prototype, {
 		$.event.trigger('showpassage', { passage: passage });
 
 		/* set proofing UI */
-		if (this.proof) {
+		if (this.proof == 'proof') {
 			$("#prfChk").prop("checked",passage.proofed);
 			$("#prfName").html(passage.name);
+		} else if (this.proof == 'read') {
+			//autoread -- duplicated from the onchange but should be a single function.
+
+			//Update local storage.
+			var pfaLength = this.pushpop("palomaProofArray", passage.name, true);
+			
+			//Update the UI.
+			var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
+			$("#prfPcnt").html(Math.round(100 * pfaLength/passageCount) + "%");
 		}
 
 		if (!noHistory) {
@@ -485,9 +497,9 @@ _.extend(Story.prototype, {
 
 		//If proofing, automatically check for leafiness (based on remaining link rendering).
 		if (this.proof) {
-			if ($('#passage a[data-passage]').length === 0) {
+			if ($('#passage a[data-passage]').length == $('#passage a.prLeaf').length) {
 				$('#leafChk').show();
-				//push the leaf if it's new.
+				//push the leaf; the function will check if it's new.
 				this.pushpop("palomaLeafArray",passage.name,true);
 			} else {
 				$('#leafChk').hide();

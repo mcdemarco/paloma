@@ -69,7 +69,7 @@ tw-storydata {
 /* proofing styles */
 
 #proof {
-    background-color: pink;
+    background-color: lightsalmon;
     position: bottom center;
     width:100%;
 }
@@ -82,9 +82,16 @@ tw-storydata {
 #prfPcnt {
     display:inline-block;
     float:right;
+    color: darkslategray;
 }
 
-body.proofing a.prLeaf {
+body.proof a.prLeaf,
+body.read a.prLeaf {
     text-decoration: line-through;
+}
+
+body.proof a.prPrfd,
+body.read a.prPrfd {
+    color: #cc8929;
 }
 
