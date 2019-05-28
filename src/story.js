@@ -249,6 +249,9 @@ _.extend(Story.prototype, {
 			$('#pauthor').html(' by ' + this.author);
 
 		if (this.proof) {
+			//Create the proofing structure.
+			$("body").append('<div id="proof">Proofing <label for="prfChk" id="prfName"></label>: <input id="prfChk" type="checkbox"/><span id="leafChk" style="display:none;"> (all children checked) </span><span id="prfPcnt">0%</span></div>');
+
 			$("#proof").show();
 			$("body").addClass("proofing");
 			$("#prfPcnt").html(Math.round(100 * this.proofs.length/this.passages.length) + "%");
@@ -312,11 +315,11 @@ _.extend(Story.prototype, {
 			var name = window.passage.name;
 
 			//Update local storage.
-			this.pushpop("palomaProofArray", name, proofed);
+			var pfaLength = this.pushpop("palomaProofArray", name, proofed);
 
 			//Update the UI.
 			var passageCount = parseInt($("#prfPcnt").data("passagecount"),10);
-			$("#prfPcnt").html(Math.round(100 * pfa.length/passageCount) + "%");
+			$("#prfPcnt").html(Math.round(100 * pfaLength/passageCount) + "%");
 		}.bind(this));
 
 		// set up hash change handler for save/restore
@@ -554,17 +557,17 @@ _.extend(Story.prototype, {
 	 @method store
 	 @param keya {String} the local storage item key
 	 @param arya {array} the array to be stored
-	 @return {bool} success or failure, if the caller cares to know
+	 @return {bool} success or failure
 	**/
 
 	store: function(keya,arya) {
 		try {
 			localStorage.setItem(keya, JSON.stringify(arya));
-			return true;
 		} catch (e) {
 			console.log("Local storage write error: " + e.description ? e.description : e.name);
 			return false;
 		}
+		return true;
 	},
 
 	/**
@@ -580,11 +583,11 @@ _.extend(Story.prototype, {
 	retrieve: function(keya) {
 		var arya = [];
 		try {
-			arya = localStorage && localStorage.getItem(keya) ? JSON.parse(localStorage.getItem(keya)) : [];
+			arya = localStorage.getItem(keya) ? _.uniq(JSON.parse(localStorage.getItem(keya))) : [];
 		} catch (e) {
 			console.log("Local storage read error: " + e.description ? e.description : e.name);
 		}
-		return _.uniq(arya);
+		return arya;
 	},
 
 	/**
@@ -594,18 +597,21 @@ _.extend(Story.prototype, {
 	 @param keya {String} the local storage item key
 	 @param passa {String} the passage name to be pushed or removed
 	 @param pusha {Bool} whether to push (true) or remove (false) the passage
-	 @return {Bool} success or failure, if the caller cares to know
+	 @return {int} current length of the array.
 	**/
 
 	pushpop: function(keya,passa,pusha) {
 		var ppa = this.retrieve(keya);
-		if (pusha)
-			ppa.push(passa);
-		else
+		if (pusha) {
+			if (ppa.indexOf(passa) < 0)
+				ppa.push(passa);
+		} else {
 			ppa = _.pluck(ppa,passa);
+		}
 
-		//Save the changes and return final result.
-		return this.store(keya, ppa);
+		//Save the changes and return size.
+		this.store(keya, ppa);
+		return ppa.length;
 	},
 
 	/**
