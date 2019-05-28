@@ -132,10 +132,11 @@ var Story = function() {
 	 @type Boolean
 	**/
 
-	this.proof = true;
+	this.proof = window.proofing;
 
 	if (this.proof) {
 		$("#proof").show();
+		$("body").addClass("proofing");
 		$("#prfChk").on("change", function() {
 			var proofed = $(this).val();
 			window.passage.proofed = proofed;
@@ -143,7 +144,7 @@ var Story = function() {
 			try {
 				var pfa = localStorage.getItem("palomaProofingArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaProofingArray"))) : [];
 
-				if (proofed) 
+				if (proofed)
 					pfa.push(name);
 				else
 					pfa = _.pluck(pfa,name);

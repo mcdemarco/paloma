@@ -6,6 +6,7 @@ var Story = window.Story = require('./story');
 var Passage = window.Passage = require('./passage');
 
 $(function() {
+	window.proofing = true;
 	window.story = new Story();
 	window.story.start();
 });

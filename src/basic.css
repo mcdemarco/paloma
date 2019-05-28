@@ -82,3 +82,7 @@ tw-storydata {
     display:inline-block;
     float:right;
 }
+
+body.proofing a.prLeaf {
+    text-decoration: line-through;
+}
