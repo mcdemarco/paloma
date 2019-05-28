@@ -23,6 +23,15 @@ var jQuery = require('jquery');
 function render(source) {
 	// See below for the definition of readyFunc.
 
+	var pfl = [];
+	if (window.proofing) {
+		try {
+			pfl = localStorage.getItem("palomaLeafArray") ? _.uniq(JSON.parse(localStorage.getItem("palomaLeafArray"))) : [];
+		} catch (e) {
+			console.log("Leaf read error: " + e.description ? e.description : e.name);
+		}
+	} 
+
 	var result = _.template(source)({ s: window.story.state, $: readyFunc });
 
 	// Remove /* comments */
@@ -100,7 +109,9 @@ function render(source) {
 			return '<a href="' + target + '">' + display + '</a>';
 		}
 		else {
-			return '<a href="javascript:void(0)" data-passage="' +
+			return '<a href="javascript:void(0)" class="' + 
+				(window.proofing && _.contains(pfl,target) ? "prLeaf" : "") +
+				'" data-passage="' +
 				_.escape(target) + '">' + display + '</a>';
 		}
 	});
