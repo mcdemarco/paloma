@@ -14,7 +14,7 @@ var LZString = require('lz-string');
 var Story = function() {
 	//Find the story and infer the Twine version.
 
-	var el, twVersion, selectorAuthor, selectorCSS, selectorScript, selectorSubtitle;
+	var el, twVersion, selectorAuthor, selectorCSS, selectorScript, selectorSubtitle; //, selectorStoryData;
 
 	if ($('tw-storydata').length > 0) {
 		el = $('tw-storydata');
@@ -23,6 +23,7 @@ var Story = function() {
 		selectorCSS = '*[type="text/twine-css"]';
 		selectorScript = '*[type="text/twine-javascript"]';
 		selectorSubtitle = 'tw-passagedata[name=StorySubtitle]';
+		//selectorStoryData = 'tw-passagedata[name=StoryData]';
 	} else {
 		el = $('#storeArea');
 		twVersion = 1;
@@ -30,6 +31,7 @@ var Story = function() {
 		selectorCSS = '*[tags*="stylesheet"]';
 		selectorScript = '*[tags*="script"]';
 		selectorSubtitle = 'div[tiddler=StorySubtitle]';
+		//selectorStoryData = 'div[tiddler=StoryData]';
 	}
 
 	// set up basic properties
@@ -91,6 +93,17 @@ var Story = function() {
 	**/
 
 	this.creatorVersion = el.attr('creator-version');
+
+	/**
+	 The journaling state (reuses old passages).
+
+	 @property journal
+	 @type Boolean
+	 @readOnly
+	**/
+
+	this.journal = false;
+
 	
 	// initialize history and state
 
@@ -317,6 +330,18 @@ _.extend(Story.prototype, {
 		_.each(this.userScripts, function(script) {
 			eval(script);
 		});
+
+		// if the author has switched to journal, we can switch over here.
+		// so far only handling the horizontality that used to be user script/style advice.
+		if (this.journal) {
+			//Used to be added as user styles.
+			$("body").addClass("journal");
+			//Used to be added as user scripts.
+			$(document).on("showpassage", function() {
+				$('html, body').animate({
+					scrollLeft: $("#passage").offset().left}, 500);
+			});
+		}
 
 		/**
 		 Triggered when the story is finished loading, and right before
