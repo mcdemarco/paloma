@@ -65,3 +65,29 @@ a:active {
 tw-storydata {
 	display: none;
 }
+
+/* journal classes */
+
+body.journal, body.journal #phistory {
+    width: auto;
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+}
+body.journal #phistory {
+    max-width:none;
+}
+body.journal #ptitlepage,
+body.journal #passage, 
+body.journal div.phistory {
+    flex-shrink: 0;
+    flex-grow: 1;
+    flex-basis: 30em;
+    border: 1px dotted gray;
+    border-bottom: none;
+    border-top: none;
+    border-collapse: collapse;
+    width: 30em;
+    min-width:30em;
+    padding:0 2em;
+}
