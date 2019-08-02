@@ -12,15 +12,26 @@ To add Paloma to Twine 2, use this URL (under Formats > Add a New Format): [http
 
 To add Paloma to Twine 1, create a new folder called `paloma` inside your targets folder, then download this file: [https://mcdemarco.net/tools/scree/paloma/header.html](https://mcdemarco.net/tools/scree/paloma/header.html) and place it inside the `paloma` folder.   (See the [Twine wiki](http://twinery.org/wiki/twine1:story_format#adding_formats) for more information about installing and using story formats in Twine 1.)
 
+## Changes from previous versions
+
+### 1.2.0
+
+Paloma recognizes an end tag, and will display a colophon passage after end-tagged passages.  The end tag (previously "End") is now configurable.
+
+Paloma now has built-in horizontal and free-navigation ("pournelle") modes.  Horizontal mode was previously implemented with user styles and scripts.
+
+The hidepassage event from Snowman has been removed because it made no sense in this context.
+
 ## Changes From Snowman
 
-Paloma displays a running log of all passages, like Jonah.  All story links from previous passages are disabled, and the previously selected link is highlighted.
+Paloma displays a running log of all passages, like Jonah.  All story links from previous passages are disabled (except in pournelle mode), and the previously selected link is highlighted.
 
 By default, clicking a passage link adds an entry to the reader's browser history.  The reader can back up through this history, but cannot go forward again (except by clicking story links again).  Paloma does not have Snowman's checkpoint functionality; history is node-by-node only.
 
 There is an inline title at the beginning of the story, as well as an optional subtitle and byline below the title.  To add a subtitle, use the special passage `StorySubtitle`.  To add an author, use `StoryAuthor`.  (The title is handled as usual for your version of Twine.)
 
 To restyle or remove the title, use the selector `#ptitle`.    To restyle or remove the subtitle, use the selectors `#psub` (for both), `#psubtitle` (for the subtitle), and `#pauthor` (for the byline).  See [my website](http://mcdemarco.net/tools/scree/paloma/) for styling examples.
+
 
 ### Non-changes from Snowman
 
