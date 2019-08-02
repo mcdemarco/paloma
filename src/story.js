@@ -95,6 +95,16 @@ var Story = function() {
 	this.creatorVersion = el.attr('creator-version');
 
 	/**
+	 The end tag for colophon placement.
+
+	 @property endTag
+	 @type String
+	 @readOnly
+	**/
+
+	this.endTag = "end";
+
+	/**
 	 The horizontal navigation state (Journal-style css and js scrolling).
 
 	 @property journal
@@ -286,7 +296,7 @@ _.extend(Story.prototype, {
 			else if (this.history.length > 1) {
 				this.state = {};
 				this.history = [];
-				this.show(this.startPassage, true);
+				this.show(this.startPassage, null, true);
 				$('div#phistory').html('');
 			}
 		}.bind(this));
@@ -295,9 +305,8 @@ _.extend(Story.prototype, {
 
 		$('body').on('click', 'a[data-passage]', function (e) {
 			if ($(e.target).closest('#phistory').length == 0 || window.story.pournelle) {
-				this.show(_.unescape(
-					$(e.target).closest('[data-passage]').addClass('visited').attr('data-passage')
-				));
+				this.show(_.unescape($(e.target).closest('[data-passage]').addClass('visited').attr('data-passage')),
+									parseInt($(e.target).closest('[data-ppassage]').attr('data-ppassage'),10));
 			}
 		}.bind(this));
 
@@ -341,16 +350,21 @@ _.extend(Story.prototype, {
 			eval(script);
 		});
 
-		// if the author has switched to horizontal, we can switch over here.
-		// so far only handling the horizontality that used to be user script/style advice.
+		// if the author has switched to horizontal or pournelle, we can switch over here.
 		if (this.horizontal) {
-			//Used to be added as user styles.
 			$("body").addClass("horizontal");
 		}
 
 		if (this.pournelle) {
-			//Used to be added as user styles.
 			$("body").addClass("pournelle");
+
+			//The start passage is visible, so we calculate how much to pad the div 
+			//(to avoid degenerate scrolling cases near the start of the story).
+			if (this.horizontal && $("body").width() < $(window).width())
+				$("#phistory").css("paddingRight", 100 - ($("body").width()/$(window).width()) + "vh");
+			else if ($("body").height() < $(window).height())
+				$("#phistory").css("paddingBottom", 100 - ($("body").height()/$(window).height()) + "vh");
+
 		}
 
 		/**
@@ -402,7 +416,7 @@ _.extend(Story.prototype, {
 	 @param noHistory {Boolean} if true, then this will not be recorded in the story history
 	**/
 
-	show: function(idOrName, noHistory) {
+	show: function(idOrName, parentId, noHistory) {
 		var passage = this.passage(idOrName);
 
 		if (!passage) {
@@ -411,14 +425,23 @@ _.extend(Story.prototype, {
 			);
 		}
 
-		/**
-		 Triggered whenever a passage is about to be replaced onscreen with another.
-		 The passage being hidden is stored in the passage property of the event.
+		//We never hide passages, so snowman's hidepassage has been removed.
 
-		 @event hidepassage
-		**/
+		if (this.pournelle && $("div#phistory" + passage.id).length > 0) {
+			//The Journal-style insertion mode is a new, weird case, 
+			//especially when the passage is already "visible".
 
-		$.event.trigger('hidepassage', { passage: window.passage });
+			//Scrolling to an existing passage is complicated by the possibility that the passage is on screen already,
+			//in which case we need to move the passage to the top/left to make it clear to the reader which passage they're on.
+			if (this.horizontal)
+				$('html, body').animate({scrollLeft: $("div#phistory" + passage.id).offset().left - $("#phistory").scrollLeft()}, 500);
+			else
+				$('html, body').animate({scrollTop: $("div#phistory" + passage.id).offset().top - $("#phistory").scrollTop()}, 1000);
+
+			return;
+		}
+		
+		//Else we return you to your regular passage showing process.
 
 		/**
 		 Triggered whenever a passage is about to be shown onscreen.
@@ -465,17 +488,23 @@ _.extend(Story.prototype, {
 			this.pcopy();
 		}
 		
-		if (!this.pournelle || $("div#phistory" + passage.id).length === 0) {
-			//Render the passage.
-			window.passage = passage;
+		//Always render the passage in normal mode; render unseen passages in pournelle mode.
+		window.passage = passage;
 
+		if (this.pournelle) 
+			$('#passage').html(passage.render());
+		else
 			$('#passage').html(passage.render()).fadeIn('slow');
+
+		this.pcolophon();
+
+		if (!this.pournelle) {
+			//This scroll is simple because we're appending the passage to the end of the story.
 			if (this.horizontal)
 				$('html, body').animate({scrollLeft: $("#passage").offset().left}, 500);
 			else
 				$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
-				
-			this.pcolophon();
+		}
 
 		/**
 		 Triggered after a passage has been shown onscreen, and is now
@@ -485,20 +514,22 @@ _.extend(Story.prototype, {
 		 @event showpassage:after
 		 **/
 
-			$.event.trigger('showpassage:after', { passage: passage });
+		$.event.trigger('showpassage:after', { passage: passage });
 
-		} else if (this.pournelle) {
-			//Scroll to existing passage.
-			if (this.horizontal)
-				$('html, body').animate({scrollLeft: $("div#phistory" + passage.id).offset().left}, 500);
-			else
-				$('html, body').animate({scrollTop: $("div#phistory" + passage.id).offset().top}, 1000);
-		}
+		if (this.pournelle) {
+			//We move (and show) the passage now even though it was already supposed to be visible to the user
+			//when triggering, so that scripts don't need to find it by its new id.
+			//Since pournelle is not really intended for scripting, hopefully this is a good compromise.
 
-		if (this.pournelle && $("div#phistory" + passage.id).length === 0) {
 			//Store new passages immediately.
 			$('#passage').hide();
-			this.pcopy();
+			this.pcopy(parentId);
+
+			//This scroll is simple because we're appending the passage nearby.
+			if (this.horizontal)
+				$('html, body').animate({scrollLeft: $("#phistory" + passage.id).offset().left}, 500);
+			else
+				$('html, body').animate({scrollTop: $("#phistory" + passage.id).offset().top}, 1000);
 		}
 	},
 
@@ -509,7 +540,7 @@ _.extend(Story.prototype, {
 	**/
 	
 	pcolophon: function() {
-		if ($.inArray('End', window.passage.tags) > -1 && this.passage('StoryColophon') != null) {
+		if ($.inArray(window.story.endTag, window.passage.tags) > -1 && this.passage('StoryColophon') != null) {
 			$(this.passage('StoryColophon').render()).hide().appendTo("#passage").fadeIn('slow');
 		}
 	},
@@ -518,10 +549,16 @@ _.extend(Story.prototype, {
 	 Copies the current passage text into the passage history div.
 
 	 @method pcopy
+	 @param parentId {Number} ID of the previous passage, only needed for pournelle
 	**/
 	
-	pcopy: function() {
-		if (parseInt(window.passage.id,10))
+	pcopy: function(parentId) {
+		if (!parseInt(window.passage.id,10))
+			return;
+
+		if (this.pournelle && parentId && $('#phistory' + parentId).length > 0)
+			$('#phistory' + parentId).after('<div class="phistory" id="phistory' + window.passage.id + '" data-ppassage="' + window.passage.id + '">' + $('#passage').html() + '</div>');
+		else
 			$('#phistory').append('<div class="phistory" id="phistory' + window.passage.id + '" data-ppassage="' + window.passage.id + '">' + $('#passage').html() + '</div>');
 	},
 	

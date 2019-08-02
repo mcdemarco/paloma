@@ -28,22 +28,26 @@ div.phistory {
     border-bottom: 2px dotted #bbb;
 }
 
+body.pournelle div.phistory {
+    color: #222;
+}
+
 div.phistory:empty {
     border: none;
 }
 
-a {
+a, body.pournelle #phistory a {
 	color: #222;
 	text-decoration: none;
 	border-bottom: 2px solid #bbb;
 }
 
-a:hover {
+a:hover, body.pournelle #phistory a:hover {
 	color: #cc8929;
 	border-color: #cc8929;
 }
 
-a:active {
+a:active, body.pournelle #phistory a:active {
 	color: #ffb040;
 	border-color: #ffb040;
 }
@@ -91,13 +95,3 @@ body.horizontal div.phistory {
     min-width:30em;
     padding:0 2em;
 }
-
-body.pournelle div.phistory {
-    color: #222;
-}
-
-body.pournelle #phistory a {
-    border-bottom: 2px solid #bbb;
-}
-
-
