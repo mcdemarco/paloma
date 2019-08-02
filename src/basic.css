@@ -66,20 +66,20 @@ tw-storydata {
 	display: none;
 }
 
-/* journal classes */
+/* horizontal classes */
 
-body.journal, body.journal #phistory {
+body.horizontal, body.horizontal #phistory {
     width: auto;
     display: flex;
     flex-direction: row;
     flex-shrink: 0;
 }
-body.journal #phistory {
+body.horizontal #phistory {
     max-width:none;
 }
-body.journal #ptitlepage,
-body.journal #passage, 
-body.journal div.phistory {
+body.horizontal #ptitlepage,
+body.horizontal #passage, 
+body.horizontal div.phistory {
     flex-shrink: 0;
     flex-grow: 1;
     flex-basis: 30em;
@@ -91,3 +91,13 @@ body.journal div.phistory {
     min-width:30em;
     padding:0 2em;
 }
+
+body.pournelle div.phistory {
+    color: #222;
+}
+
+body.pournelle #phistory a {
+    border-bottom: 2px solid #bbb;
+}
+
+
