@@ -95,14 +95,24 @@ var Story = function() {
 	this.creatorVersion = el.attr('creator-version');
 
 	/**
-	 The journaling state (reuses old passages).
+	 The horizontal navigation state (Journal-style css and js scrolling).
 
 	 @property journal
 	 @type Boolean
 	 @readOnly
 	**/
 
-	this.journal = false;
+	this.horizontal = false;
+
+	/**
+	 The renavigation state (a feature request out of Journal, but also works vertically).
+
+	 @property pournelle
+	 @type Boolean
+	 @readOnly
+	**/
+
+	this.pournelle = false;
 
 	
 	// initialize history and state
@@ -284,7 +294,7 @@ _.extend(Story.prototype, {
 		// set up passage link handler; don't handle historical links
 
 		$('body').on('click', 'a[data-passage]', function (e) {
-			if ($(e.target).closest('#phistory').length == 0) {
+			if ($(e.target).closest('#phistory').length == 0 || window.story.pournelle) {
 				this.show(_.unescape(
 					$(e.target).closest('[data-passage]').addClass('visited').attr('data-passage')
 				));
@@ -331,16 +341,16 @@ _.extend(Story.prototype, {
 			eval(script);
 		});
 
-		// if the author has switched to journal, we can switch over here.
+		// if the author has switched to horizontal, we can switch over here.
 		// so far only handling the horizontality that used to be user script/style advice.
-		if (this.journal) {
+		if (this.horizontal) {
 			//Used to be added as user styles.
-			$("body").addClass("journal");
-			//Used to be added as user scripts.
-			$(document).on("showpassage", function() {
-				$('html, body').animate({
-					scrollLeft: $("#passage").offset().left}, 500);
-			});
+			$("body").addClass("horizontal");
+		}
+
+		if (this.pournelle) {
+			//Used to be added as user styles.
+			$("body").addClass("pournelle");
 		}
 
 		/**
@@ -449,14 +459,23 @@ _.extend(Story.prototype, {
 		 Save the old passage html to the passage history.  Checkpoint all passages.
 		 **/
 
-		$('#passage').hide();
-		this.pcopy();
+		if (!this.pournelle) {
+			//Copy old passage on opening new.
+			$('#passage').hide();
+			this.pcopy();
+		}
 		
-		window.passage = passage;
+		if (!this.pournelle || $("div#phistory" + passage.id).length === 0) {
+			//Render the passage.
+			window.passage = passage;
 
-		$('#passage').html(passage.render()).fadeIn('slow');
-		$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
-		this.pcolophon();
+			$('#passage').html(passage.render()).fadeIn('slow');
+			if (this.horizontal)
+				$('html, body').animate({scrollLeft: $("#passage").offset().left}, 500);
+			else
+				$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
+				
+			this.pcolophon();
 
 		/**
 		 Triggered after a passage has been shown onscreen, and is now
@@ -466,7 +485,21 @@ _.extend(Story.prototype, {
 		 @event showpassage:after
 		 **/
 
-		$.event.trigger('showpassage:after', { passage: passage });
+			$.event.trigger('showpassage:after', { passage: passage });
+
+		} else if (this.pournelle) {
+			//Scroll to existing passage.
+			if (this.horizontal)
+				$('html, body').animate({scrollLeft: $("div#phistory" + passage.id).offset().left}, 500);
+			else
+				$('html, body').animate({scrollTop: $("div#phistory" + passage.id).offset().top}, 1000);
+		}
+
+		if (this.pournelle && $("div#phistory" + passage.id).length === 0) {
+			//Store new passages immediately.
+			$('#passage').hide();
+			this.pcopy();
+		}
 	},
 
 	/**
@@ -489,7 +522,7 @@ _.extend(Story.prototype, {
 	
 	pcopy: function() {
 		if (parseInt(window.passage.id,10))
-			$('#phistory').append('<div class="phistory" data-ppassage="' + window.passage.id + '">' + $('#passage').html() + '</div>');
+			$('#phistory').append('<div class="phistory" id="phistory' + window.passage.id + '" data-ppassage="' + window.passage.id + '">' + $('#passage').html() + '</div>');
 	},
 	
 	/**
@@ -519,8 +552,7 @@ _.extend(Story.prototype, {
 	 @return String hash
 	**/
 
-	saveHash: function()
-	{	
+	saveHash: function() {	
 		return LZString.compressToBase64(JSON.stringify({ state: this.state, history: this.history }));
 	},
 
@@ -531,8 +563,7 @@ _.extend(Story.prototype, {
 	 @return String hash
 	**/
 
-	save: function()
-	{
+	save: function() {
 		/**
 		 Triggered whenever story progress is saved.
 
@@ -551,8 +582,7 @@ _.extend(Story.prototype, {
 	 @return {Boolean} whether the restore succeeded
 	**/
 
-	restore: function (hash)
-	{
+	restore: function (hash) {
 		/**
 		 Triggered before trying to restore from a hash.
 
