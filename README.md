@@ -18,9 +18,11 @@ To add Paloma to Twine 1, create a new folder called `paloma` inside your target
 
 Paloma recognizes an end tag, and will display a colophon passage after end-tagged passages.  The end tag (previously "End") is now configurable.
 
-Paloma now has built-in horizontal and free-navigation ("pournelle") modes.  Horizontal mode was previously implemented with user styles and scripts.
+Paloma now has built-in horizontal and free-navigation ("pournelle") modes.  Horizontal mode was previously implemented with user styles and scripts.  Horizontal + pournelle mode also centers passages (but this behavior can be turned off).
 
 The hidepassage event from Snowman has been removed because it made no sense in this context.
+
+TODO: test colophon/end tag behavior.
 
 ## Changes From Snowman
 

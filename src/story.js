@@ -124,6 +124,16 @@ var Story = function() {
 
 	this.pournelle = false;
 
+	/**
+	 The scrolling adjustment in absolute pixels.
+
+	 @property scrollAdjust
+	 @type Integer
+	 @readOnly
+	**/
+
+	this.scrollAdjust = 5;
+
 	
 	// initialize history and state
 
@@ -353,6 +363,7 @@ _.extend(Story.prototype, {
 		// if the author has switched to horizontal or pournelle, we can switch over here.
 		if (this.horizontal) {
 			$("body").addClass("horizontal");
+
 		}
 
 		if (this.pournelle) {
@@ -365,6 +376,18 @@ _.extend(Story.prototype, {
 			else if ($("body").height() < $(window).height())
 				$("#phistory").css("paddingBottom", 100 - ($("body").height()/$(window).height()) + "vh");
 
+		}
+
+		if (this.horizontal && this.pournelle) {
+			//Adjustments to center the passage.  
+
+			//The horizonal passage size is 30em; derive its actual size in pixels from the base font.
+			var passize = Number(getComputedStyle(document.body, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]) * 30;
+			this.scrollAdjust = Math.max(parseInt(($("body").width() - passize)/2, 10),0);
+
+			//Centering can be overridden by the user by setting scrollAdjust back to the default (5), or another value.
+			//In this case (unlike other settings), the user should make the adjustment after the startstory trigger,
+			//e.g., $(document).on('startstory', function() {window.story.scrollAdjust = 0;});
 		}
 
 		/**
@@ -432,11 +455,13 @@ _.extend(Story.prototype, {
 			//especially when the passage is already "visible".
 
 			//Scrolling to an existing passage is complicated by the possibility that the passage is on screen already,
-			//in which case we need to move the passage to the top/left to make it clear to the reader which passage they're on.
+			//in which case we need to move the passage to the top or center to make it clear to the reader which passage they're on.
+			//Horizontal scroll is also complicated by possibly needing to scroll back to the top of the page on long passages.
 			if (this.horizontal)
-				$('html, body').animate({scrollLeft: $("div#phistory" + passage.id).offset().left - $("#phistory").scrollLeft()}, 500);
+				$('html, body').animate({scrollLeft: ($("div#phistory" + passage.id).offset().left - $("#phistory").scrollLeft()) - this.scrollAdjust,
+												scrollTop: 1}, 500);
 			else
-				$('html, body').animate({scrollTop: $("div#phistory" + passage.id).offset().top - $("#phistory").scrollTop()}, 1000);
+				$('html, body').animate({scrollTop: ($("div#phistory" + passage.id).offset().top - $("#phistory").scrollTop()) - this.scrollAdjust}, 1000);
 
 			return;
 		}
@@ -501,9 +526,9 @@ _.extend(Story.prototype, {
 		if (!this.pournelle) {
 			//This scroll is simple because we're appending the passage to the end of the story.
 			if (this.horizontal)
-				$('html, body').animate({scrollLeft: $("#passage").offset().left}, 500);
+				$('html, body').animate({scrollLeft: $("#passage").offset().left - this.scrollAdjust, scrollTop: 1}, 500);
 			else
-				$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
+				$('html, body').animate({scrollTop: $("#passage").offset().top - this.scrollAdjust}, 1000);
 		}
 
 		/**
@@ -527,9 +552,10 @@ _.extend(Story.prototype, {
 
 			//This scroll is simple because we're appending the passage nearby.
 			if (this.horizontal)
-				$('html, body').animate({scrollLeft: $("#phistory" + passage.id).offset().left}, 500);
+				$('html, body').animate({scrollLeft: $("#phistory" + passage.id).offset().left - this.scrollAdjust,
+																scrollTop: 1}, 500);
 			else
-				$('html, body').animate({scrollTop: $("#phistory" + passage.id).offset().top}, 1000);
+				$('html, body').animate({scrollTop: $("#phistory" + passage.id).offset().top - this.scrollAdjust}, 1000);
 		}
 	},
 
