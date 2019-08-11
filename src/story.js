@@ -454,6 +454,8 @@ _.extend(Story.prototype, {
 			//The Journal-style insertion mode is a new, weird case, 
 			//especially when the passage is already "visible".
 
+			$.event.trigger('revisitpassage', { passage: passage });
+
 			//Scrolling to an existing passage is complicated by the possibility that the passage is on screen already,
 			//in which case we need to move the passage to the top or center to make it clear to the reader which passage they're on.
 			//Horizontal scroll is also complicated by possibly needing to scroll back to the top of the page on long passages.
@@ -462,6 +464,8 @@ _.extend(Story.prototype, {
 												scrollTop: 1}, 500);
 			else
 				$('html, body').animate({scrollTop: ($("div#phistory" + passage.id).offset().top - $("#phistory").scrollTop()) - this.scrollAdjust}, 1000);
+
+			$.event.trigger('revisitpassage:after', { passage: passage });
 
 			return;
 		}
