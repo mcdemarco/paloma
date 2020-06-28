@@ -292,7 +292,7 @@ _.extend(Story.prototype, {
 
 				if (this.history.length == $('div.phistory').length && !$('#phistory').hasClass('fakeBack')) {
 					$('div.phistory:last').remove();
-					this.show(this.history[this.history.length - 1], true);
+					this.show(this.history[this.history.length - 1], null, true);
 					$('div.phistory:last').remove();
 				} else {
 					if ($('#phistory').hasClass('fakeBack')) {
@@ -382,8 +382,8 @@ _.extend(Story.prototype, {
 			//Adjustments to center the passage.  
 
 			//The horizonal passage size is 30em; derive its actual size in pixels from the base font.
-			var passize = Number(getComputedStyle(document.body, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]) * 30;
-			this.scrollAdjust = Math.max(parseInt(($("body").width() - passize)/2, 10),0);
+			var emsize = Number(getComputedStyle(document.body, "").fontSize.match(/(\d*(\.\d*)?)px/)[1]);
+			this.scrollAdjust = Math.max(parseInt(($("body").width() - (emsize * 30))/2, 10),0);
 
 			//Centering can be overridden by the user by setting scrollAdjust back to the default (5), or another value.
 			//In this case (unlike other settings), the user should make the adjustment after the startstory trigger,
@@ -448,7 +448,8 @@ _.extend(Story.prototype, {
 			);
 		}
 
-		//We never hide passages, so snowman's hidepassage has been removed.
+		//We never hide passages, so snowman's hidepassage has been renamed.
+		$.event.trigger('leavepassage', { passage: window.passage });
 
 		if (this.pournelle && $("div#phistory" + passage.id).length > 0) {
 			//The Journal-style insertion mode is a new, weird case, 
@@ -529,10 +530,11 @@ _.extend(Story.prototype, {
 
 		if (!this.pournelle) {
 			//This scroll is simple because we're appending the passage to the end of the story.
-			if (this.horizontal)
+			if (this.horizontal) {
 				$('html, body').animate({scrollLeft: $("#passage").offset().left - this.scrollAdjust, scrollTop: 1}, 500);
-			else
+			} else {
 				$('html, body').animate({scrollTop: $("#passage").offset().top - this.scrollAdjust}, 1000);
+			}
 		}
 
 		/**
