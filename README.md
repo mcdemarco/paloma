@@ -73,3 +73,4 @@ Initial version.
 
 Run `npm install` to install dependencies.  Run `grunt package` to create a release version for Twine under `dist/`.  Run `grunt --help` to list other grunt targets.
 
+Building is currently affected by [an npm bug](https://github.com/npm/cli/issues/4992) which you can get around with `npm install --no-audit` or by downgrading.  For this reason some dependencies remain out of date.
