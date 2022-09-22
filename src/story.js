@@ -436,10 +436,12 @@ _.extend(Story.prototype, {
 
 	 @method show
 	 @param idOrName {String or Number} ID or name of the passage
+	 @param parentId {Number} ID of the previous passage, only needed for pournelle
 	 @param noHistory {Boolean} if true, then this will not be recorded in the story history
+	 @param restore {Boolean} if true, then this show is part of a restore and doesn't need checking
 	**/
 
-	show: function(idOrName, parentId, noHistory) {
+	show: function(idOrName, parentId, noHistory, restore) {
 		var passage = this.passage(idOrName);
 
 		if (!passage) {
@@ -451,7 +453,7 @@ _.extend(Story.prototype, {
 		//We never hide passages, so snowman's hidepassage has been renamed.
 		$.event.trigger('leavepassage', { passage: window.passage });
 
-		if (this.pournelle && $("div#phistory" + passage.id).length > 0) {
+		if (!restore && this.pournelle && $("div#phistory" + passage.id).length > 0) {
 			//The Journal-style insertion mode is a new, weird case, 
 			//especially when the passage is already "visible".
 
@@ -521,14 +523,16 @@ _.extend(Story.prototype, {
 		//Always render the passage in normal mode; render unseen passages in pournelle mode.
 		window.passage = passage;
 
-		if (this.pournelle) 
+		//Don't fade in on restore.
+		if (this.pournelle || restore) 
 			$('#passage').html(passage.render());
 		else
 			$('#passage').html(passage.render()).fadeIn('slow');
 
 		this.pcolophon();
 
-		if (!this.pournelle) {
+		//Don't scroll on restore (excepting the last passage, which isn't marked restore).
+		if (!this.pournelle && !restore) {
 			//This scroll is simple because we're appending the passage to the end of the story.
 			if (this.horizontal) {
 				$('html, body').animate({scrollLeft: $("#passage").offset().left - this.scrollAdjust, scrollTop: 1}, 500);
@@ -547,7 +551,7 @@ _.extend(Story.prototype, {
 
 		$.event.trigger('showpassage:after', { passage: passage });
 
-		if (this.pournelle) {
+		if (this.pournelle && !restore) {
 			//We move (and show) the passage now even though it was already supposed to be visible to the user
 			//when triggering, so that scripts don't need to find it by its new id.
 			//Since pournelle is not really intended for scripting, hopefully this is a good compromise.
@@ -665,7 +669,15 @@ _.extend(Story.prototype, {
 			var save = JSON.parse(LZString.decompressFromBase64(hash));
 			this.state = save.state;
 			this.history = save.history;
-			this.show(this.history[this.history.length - 1], true);
+			var historyCopy = this.history.slice();
+
+			//this.show(this.history[this.history.length-1], null, false, true);
+			for (var h = 0; h < historyCopy.length; h++) {
+				//For pournelle, we do need to check the last passage and possibly scroll into it, so the restore flag is not always true.
+				//show: function(idOrName, parentId, noHistory, restore)
+				this.show(historyCopy[h], (h ? historyCopy[h-1] : null), false, h < historyCopy.length - 1);
+			}
+
 		}
 		catch (e)
 		{
