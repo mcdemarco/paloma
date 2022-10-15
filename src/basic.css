@@ -95,3 +95,7 @@ body.horizontal div.phistory {
     min-width:30em;
     padding:0 2em;
 }
+
+body.horizontal div.phistory {
+    overflow: hidden;
+}
