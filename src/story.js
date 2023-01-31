@@ -335,6 +335,8 @@ _.extend(Story.prototype, {
 
 			this.show(this.startPassage);
 		}
+
+		$.event.trigger('startstory:after', { story: this });
 	},
 
 	/**
@@ -428,6 +430,8 @@ _.extend(Story.prototype, {
 		this.pcopy();
 		
 		window.passage = passage;
+
+		$.event.trigger('showpassage:ready', { passage: passage });
 
 		$('#passage').html(passage.render()).fadeIn('slow');
 		$('html, body').animate({scrollTop: $("#passage").offset().top}, 1000);
